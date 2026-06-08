@@ -21,12 +21,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.pawlyapp.ui.login.view.LoginScreenView
-import com.example.pawlyapp.ui.mainmenu.homeMainmenu.view.HomeMainMenuView
 import com.example.pawlyapp.ui.dogids.homeDogids.view.HomeDogidsView
 import com.example.pawlyapp.ui.health.homeHealth.view.HomeHealthView
+import com.example.pawlyapp.ui.login.view.LoginScreenView
+import com.example.pawlyapp.ui.mainmenu.firstapirequest.view.FirstApiRequestView
+import com.example.pawlyapp.ui.mainmenu.homeMainmenu.view.HomeMainMenuView
 import com.example.pawlyapp.ui.personalinformation.homePersonalinformation.view.HomePersonalinformationView
 import com.example.pawlyapp.ui.tracker.homeTracker.view.HomeTrackerView
+
+private const val FIRST_API_REQUEST_ROUTE = "first_api_request"
 
 sealed class AppRoute(val route: String, val label: String, val icon: ImageVector) {
     object MainMenu : AppRoute("main_menu", "Inicio", Icons.Filled.Home)
@@ -47,15 +50,23 @@ private val TABS = listOf(
 @Composable
 fun AppNavigation() {
     val rootNavController = rememberNavController()
-    
-    NavHost(navController = rootNavController, startDestination = "login") {
+
+    NavHost(
+        navController = rootNavController,
+        startDestination = "login"
+    ) {
         composable("login") {
-            LoginScreenView(onLoginClick = {
-                rootNavController.navigate("tabs") {
-                    popUpTo("login") { inclusive = true }
+            LoginScreenView(
+                onLoginClick = {
+                    rootNavController.navigate("tabs") {
+                        popUpTo("login") {
+                            inclusive = true
+                        }
+                    }
                 }
-            })
+            )
         }
+
         composable("tabs") {
             TabsScaffold()
         }
@@ -83,30 +94,57 @@ private fun TabsScaffold() {
                                 restoreState = true
                             }
                         },
-                        icon = { Icon(tab.icon, contentDescription = tab.label) },
-                        label = { Text(tab.label, fontSize = 10.sp) }
+                        icon = {
+                            Icon(
+                                imageVector = tab.icon,
+                                contentDescription = tab.label
+                            )
+                        },
+                        label = {
+                            Text(
+                                text = tab.label,
+                                fontSize = 10.sp
+                            )
+                        }
                     )
                 }
             }
         }
     ) { innerPadding ->
+
         NavHost(
             navController = navController,
             startDestination = AppRoute.MainMenu.route,
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(AppRoute.MainMenu.route) {
-                HomeMainMenuView()
+                HomeMainMenuView(
+                    onNavigateToFirstApiRequest = {
+                        navController.navigate(FIRST_API_REQUEST_ROUTE)
+                    }
+                )
             }
+
+            composable(FIRST_API_REQUEST_ROUTE) {
+                FirstApiRequestView(
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
             composable(AppRoute.DogIds.route) {
                 HomeDogidsView()
             }
+
             composable(AppRoute.Health.route) {
                 HomeHealthView()
             }
+
             composable(AppRoute.Tracker.route) {
                 HomeTrackerView()
             }
+
             composable(AppRoute.PersonalInfo.route) {
                 HomePersonalinformationView()
             }
