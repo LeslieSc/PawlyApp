@@ -30,7 +30,7 @@ class FirstApiRequestViewModel : ViewModel() {
             _isLoading.value = true
             _error.value = null
             try {
-                _breeds.value = RetrofitClient.gistService.getBreeds().breeds
+                _breeds.value = RetrofitClient.gistService.getBreeds()
             } catch (e: Exception) {
                 _error.value = e.message
             } finally {
