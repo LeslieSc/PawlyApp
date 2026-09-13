@@ -21,8 +21,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.pawlyapp.ui.dogids.homeDogids.view.HomeDogidsView
 import com.example.pawlyapp.ui.health.homeHealth.view.HomeHealthView
+import com.example.pawlyapp.ui.home.view.PetsHomeView
 import com.example.pawlyapp.ui.login.view.LoginScreenView
 import com.example.pawlyapp.ui.mainmenu.firstapirequest.view.FirstApiRequestView
 import com.example.pawlyapp.ui.mainmenu.homeMainmenu.view.HomeMainMenuView
@@ -32,19 +32,19 @@ import com.example.pawlyapp.ui.tracker.homeTracker.view.HomeTrackerView
 private const val FIRST_API_REQUEST_ROUTE = "first_api_request"
 
 sealed class AppRoute(val route: String, val label: String, val icon: ImageVector) {
-    object MainMenu : AppRoute("main_menu", "Inicio", Icons.Filled.Home)
-    object DogIds : AppRoute("dog_ids", "Mascotas", Icons.Filled.Pets)
+    object MainMenu : AppRoute("main_menu", "Explorar", Icons.Filled.Pets)
+    object Home : AppRoute("home", "Inicio", Icons.Filled.Home)
     object Health : AppRoute("health", "Salud", Icons.Filled.Favorite)
     object Tracker : AppRoute("tracker", "Tracker", Icons.Filled.LocationOn)
     object PersonalInfo : AppRoute("personal_info", "Perfil", Icons.Filled.Person)
 }
 
 private val TABS = listOf(
+    AppRoute.Home,
     AppRoute.MainMenu,
-    AppRoute.DogIds,
     AppRoute.Health,
     AppRoute.Tracker,
-    AppRoute.PersonalInfo
+    AppRoute.PersonalInfo,
 )
 
 @Composable
@@ -98,8 +98,7 @@ private fun TabsScaffold() {
                             Icon(
                                 imageVector = tab.icon,
                                 contentDescription = tab.label
-                            )
-                        },
+                            ) },
                         label = {
                             Text(
                                 text = tab.label,
@@ -114,7 +113,7 @@ private fun TabsScaffold() {
 
         NavHost(
             navController = navController,
-            startDestination = AppRoute.MainMenu.route,
+            startDestination = AppRoute.Home.route,
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(AppRoute.MainMenu.route) {
@@ -124,6 +123,9 @@ private fun TabsScaffold() {
                     }
                 )
             }
+            composable(AppRoute.Home.route) {
+                PetsHomeView()
+            }
 
             composable(FIRST_API_REQUEST_ROUTE) {
                 FirstApiRequestView(
@@ -131,10 +133,6 @@ private fun TabsScaffold() {
                         navController.popBackStack()
                     }
                 )
-            }
-
-            composable(AppRoute.DogIds.route) {
-                HomeDogidsView()
             }
 
             composable(AppRoute.Health.route) {
