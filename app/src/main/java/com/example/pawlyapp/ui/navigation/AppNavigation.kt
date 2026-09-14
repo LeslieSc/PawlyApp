@@ -23,12 +23,16 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.pawlyapp.ui.dogids.homeDogids.view.HomeDogidsView
 import com.example.pawlyapp.ui.health.homeHealth.view.HomeHealthView
-import com.example.pawlyapp.ui.login.view.LoginScreenView
+import com.example.pawlyapp.ui.auth.view.LoginScreenView
 import com.example.pawlyapp.ui.mainmenu.firstapirequest.view.FirstApiRequestView
 import com.example.pawlyapp.ui.mainmenu.homeMainmenu.view.HomeMainMenuView
 import com.example.pawlyapp.ui.personalinformation.homePersonalinformation.view.HomePersonalinformationView
 import com.example.pawlyapp.ui.tracker.homeTracker.view.HomeTrackerView
-
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.pawlyapp.ui.auth.data.SessionPreferences
+import com.example.pawlyapp.ui.auth.viewmodel.LogoutViewModel
 private const val FIRST_API_REQUEST_ROUTE = "first_api_request"
 
 sealed class AppRoute(val route: String, val label: String, val icon: ImageVector) {
@@ -50,6 +54,15 @@ private val TABS = listOf(
 @Composable
 fun AppNavigation() {
     val rootNavController = rememberNavController()
+    val context = LocalContext.current
+
+    val startDestination = remember {
+        if (SessionPreferences(context).isLoggedIn()) {
+            "tabs"
+        } else {
+            "login"
+        }
+    }
 
     NavHost(
         navController = rootNavController,
@@ -57,24 +70,39 @@ fun AppNavigation() {
     ) {
         composable("login") {
             LoginScreenView(
-                onLoginClick = {
+                onLoginSuccess = {
                     rootNavController.navigate("tabs") {
                         popUpTo("login") {
                             inclusive = true
                         }
                     }
+
+
                 }
             )
         }
 
         composable("tabs") {
-            TabsScaffold()
+            val logoutViewModel: LogoutViewModel = viewModel()
+
+            TabsScaffold(
+                onLogout = {
+                    logoutViewModel.logout {
+                        rootNavController.navigate("login") {
+                            popUpTo("tabs") {
+                                inclusive = true
+                            }
+                        }
+                    }
+                }
+
+            )
         }
     }
 }
 
 @Composable
-private fun TabsScaffold() {
+private fun TabsScaffold(onLogout: () -> Unit) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -146,7 +174,7 @@ private fun TabsScaffold() {
             }
 
             composable(AppRoute.PersonalInfo.route) {
-                HomePersonalinformationView()
+                HomePersonalinformationView( onLogout = onLogout)
             }
         }
     }

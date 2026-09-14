@@ -1,5 +1,9 @@
-package com.example.pawlyapp.ui.login.view
+package com.example.pawlyapp.ui.auth.view
 
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.pawlyapp.ui.auth.viewmodel.LoginViewModel
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -35,13 +39,29 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.pawlyapp.R
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.text.input.VisualTransformation
+
 
 @Composable
-fun LoginScreenView(onLoginClick: () -> Unit) {
-    var email by remember { mutableStateOf("") }
+fun LoginScreenView(onLoginSuccess: () -> Unit,
+                    viewModel: LoginViewModel = viewModel()) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState.isLoggedIn) {
+        if (uiState.isLoggedIn) {
+            onLoginSuccess()
+        }
+    }
 
     val backgroundColor = Color(0xFFF7F1EA)
     val cardColor = Color.White
@@ -88,7 +108,7 @@ fun LoginScreenView(onLoginClick: () -> Unit) {
                 Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
-                    text = "Sign in to take better care of your pet",
+                    text = "ingresa para poder cuidar a tu mascota",
                     style = MaterialTheme.typography.bodyMedium,
                     color = textSoft,
                     textAlign = TextAlign.Center
@@ -97,14 +117,14 @@ fun LoginScreenView(onLoginClick: () -> Unit) {
                 Spacer(modifier = Modifier.height(28.dp))
 
                 OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = { Text("Email address") },
-                    placeholder = { Text("example@email.com") },
+                    value = username,
+                    onValueChange = { username = it },
+                    label = { Text("Username") },
+                    placeholder = { Text("Ingresa tu nombre de usuario") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     shape = RoundedCornerShape(18.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = primaryBrown,
                         unfocusedBorderColor = softBeige,
@@ -113,20 +133,47 @@ fun LoginScreenView(onLoginClick: () -> Unit) {
                         cursorColor = primaryBrown,
                         focusedContainerColor = Color.White,
                         unfocusedContainerColor = Color.White
-                    )
+                    ),
+                    enabled = !uiState.isLoading
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = { password = it
+                                    viewModel.clearError()},
                     label = { Text("Password") },
                     placeholder = { Text("Enter your password") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     shape = RoundedCornerShape(18.dp),
-                    visualTransformation = PasswordVisualTransformation(),
+                    visualTransformation = if (passwordVisible) {
+                        VisualTransformation.None
+                        } else {
+                        PasswordVisualTransformation()
+
+                    },
+
+                    trailingIcon = {
+                        IconButton(
+                            onClick = {
+                                passwordVisible = !passwordVisible
+                            }
+                        ) {
+                            Icon(imageVector = if (passwordVisible) { Icons.Filled.VisibilityOff }
+                            else {
+                                Icons.Filled.Visibility
+                                },
+
+                                contentDescription =
+                                    if (passwordVisible) { "Ocultar contraseña" }
+                                else {
+                                    "Mostrar contraseña"
+                                }
+                            )
+                        }
+                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = primaryBrown,
@@ -136,13 +183,26 @@ fun LoginScreenView(onLoginClick: () -> Unit) {
                         cursorColor = primaryBrown,
                         focusedContainerColor = Color.White,
                         unfocusedContainerColor = Color.White
-                    )
+                    ),
+                    enabled = !uiState.isLoading
                 )
+                if (uiState.error != null) {
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = uiState.error!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        textAlign = TextAlign.Center
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(26.dp))
 
                 Button(
-                    onClick = onLoginClick,
+                    onClick = { viewModel.login(username,
+                        password) },
+                    enabled = !uiState.isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(54.dp),
@@ -152,22 +212,13 @@ fun LoginScreenView(onLoginClick: () -> Unit) {
                         contentColor = Color.White
                     )
                 ) {
-                    Text(
-                        text = "Log in",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    Text("Iniciar sesión")
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                }
 
-                Text(
-                    text = "Your safe space to care for your dog 🐾",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = textSoft,
-                    textAlign = TextAlign.Center
-                )
+                Spacer(modifier = Modifier.height(24.dp))
+
             }
         }
     }
-}
