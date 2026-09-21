@@ -24,6 +24,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -66,16 +68,21 @@ fun WalkCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(
-                        if (featured) 210.dp
-                        else 125.dp
+                        if (featured) {
+                            210.dp
+                        } else {
+                            125.dp
+                        }
                     )
+                    .clipToBounds()
             ) {
 
                 AsyncImage(
                     model = walk.image,
-                    contentDescription =
-                        "Paseo de ${walk.petName}",
-                    modifier = Modifier.fillMaxSize(),
+                    contentDescription = "Paseo de ${walk.petName}",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(1.18f),
                     contentScale = ContentScale.Crop
                 )
 
@@ -96,9 +103,7 @@ fun WalkCard(
 
                 Column(
                     modifier = Modifier
-                        .align(
-                            Alignment.BottomStart
-                        )
+                        .align(Alignment.BottomStart)
                         .padding(16.dp)
                 ) {
 
@@ -120,9 +125,8 @@ fun WalkCard(
                             walk.date,
                             withTime = featured
                         ),
-                        style =
-                            MaterialTheme.typography
-                                .bodySmall,
+                        style = MaterialTheme.typography
+                            .bodySmall,
                         color = Color.White
                     )
                 }
@@ -139,8 +143,7 @@ fun WalkCard(
                 ) {
 
                     WalkStat(
-                        icon = Icons.Default
-                            .DirectionsWalk,
+                        icon = Icons.Default.DirectionsWalk,
                         value = "%,d".format(
                             walk.steps
                         ),
@@ -148,8 +151,7 @@ fun WalkCard(
                     )
 
                     WalkStat(
-                        icon = Icons.Default
-                            .LocationOn,
+                        icon = Icons.Default.LocationOn,
                         value = "${walk.distanceKm} km",
                         label = "distancia"
                     )
@@ -168,26 +170,21 @@ fun WalkCard(
                 ) {
 
                     Text(
-                        text =
-                            "%,d pasos".format(
-                                walk.steps
-                            ),
-                        fontWeight =
-                            FontWeight.SemiBold,
+                        text = "%,d pasos".format(
+                            walk.steps
+                        ),
+                        fontWeight = FontWeight.SemiBold,
                         color = PawlyBrown
                     )
 
                     Spacer(
-                        modifier =
-                            Modifier.height(4.dp)
+                        modifier = Modifier.height(4.dp)
                     )
 
                     Text(
-                        text =
-                            "${walk.distanceKm} km · ${walk.durationText}",
-                        style =
-                            MaterialTheme.typography
-                                .bodySmall,
+                        text = "${walk.distanceKm} km · ${walk.durationText}",
+                        style = MaterialTheme.typography
+                            .bodySmall,
                         color = PawlyTextSoft
                     )
                 }
@@ -218,18 +215,16 @@ private fun WalkStat(
 
         Text(
             text = value,
-            style =
-                MaterialTheme.typography
-                    .titleMedium,
+            style = MaterialTheme.typography
+                .titleMedium,
             fontWeight = FontWeight.Bold,
             color = PawlyDarkBrown
         )
 
         Text(
             text = label,
-            style =
-                MaterialTheme.typography
-                    .bodySmall,
+            style = MaterialTheme.typography
+                .bodySmall,
             color = PawlyTextSoft
         )
     }
