@@ -2,7 +2,6 @@ package com.example.pawlyapp.ui.onboarding.view
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +16,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Lightbulb
@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -71,22 +72,46 @@ fun OnboardingView(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
+        // Flecha para regresar a la página anterior del onboarding
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 20.dp),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Saltar",
-                color = textSoft,
-                fontSize = 15.sp,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .clickable {
+
+            if (pagerState.currentPage > 0) {
+
+                IconButton(
+                    onClick = {
+
+                        val previousPage =
+                            pagerState.currentPage - 1
+
                         coroutineScope.launch {
-                            pagerState.animateScrollToPage(2)
+                            pagerState.animateScrollToPage(
+                                page = previousPage
+                            )
                         }
-                    }
-            )
+                    },
+                    modifier = Modifier.size(52.dp)
+                ) {
+
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Regresar",
+                        tint = primaryBrown,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+
+            } else {
+
+                Spacer(
+                    modifier = Modifier.size(52.dp)
+                )
+            }
         }
 
         HorizontalPager(
@@ -129,6 +154,7 @@ fun OnboardingView(
             modifier = Modifier.height(6.dp)
         )
 
+        // Indicador de páginas
         Row(
             horizontalArrangement = Arrangement.spacedBy(7.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -163,14 +189,18 @@ fun OnboardingView(
             modifier = Modifier.height(18.dp)
         )
 
+        // Botón Siguiente / Comenzar
         Button(
             onClick = {
 
                 if (pagerState.currentPage < 2) {
 
+                    val nextPage =
+                        pagerState.currentPage + 1
+
                     coroutineScope.launch {
                         pagerState.animateScrollToPage(
-                            pagerState.currentPage + 1
+                            page = nextPage
                         )
                     }
 
