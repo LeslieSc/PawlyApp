@@ -40,6 +40,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.pawlyapp.R
+import com.example.pawlyapp.ui.components.PawLoaderOverlay
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -70,6 +71,7 @@ fun LoginScreenView(onLoginSuccess: () -> Unit,
     val softBeige = Color(0xFFE8D8C3)
     val textSoft = Color(0xFF8D7B68)
 
+    Box(modifier = Modifier.fillMaxSize()) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -221,4 +223,9 @@ fun LoginScreenView(onLoginSuccess: () -> Unit,
 
             }
         }
+
+        if (uiState.isLoading) {
+            PawLoaderOverlay()
+        }
     }
+}
