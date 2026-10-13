@@ -131,7 +131,7 @@ fun LoginScreenView(onLoginSuccess: () -> Unit,
 
                 OutlinedTextField(
                     value = username,
-                    onValueChange = { username = it },
+                    onValueChange = { username = it.replace(" ", "") },
                     label = { Text("Username") },
                     placeholder = { Text("Ingresa tu nombre de usuario") },
                     modifier = Modifier.fillMaxWidth(),
@@ -154,7 +154,7 @@ fun LoginScreenView(onLoginSuccess: () -> Unit,
 
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { password = it
+                    onValueChange = { password = it.replace(" ", "")
                                     viewModel.clearError()},
                     label = { Text("Password") },
                     placeholder = { Text("Enter your password") },
