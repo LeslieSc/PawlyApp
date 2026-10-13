@@ -47,12 +47,17 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
 
 
 @Composable
 fun LoginScreenView(onLoginSuccess: () -> Unit,
                     viewModel: LoginViewModel = viewModel()) {
     val uiState by viewModel.uiState.collectAsState()
+
+    val focusManager = LocalFocusManager.current
 
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -76,6 +81,12 @@ fun LoginScreenView(onLoginSuccess: () -> Unit,
         modifier = Modifier
             .fillMaxSize()
             .background(backgroundColor)
+            .pointerInput(Unit){
+                detectTapGestures (onTap = {
+                    focusManager.clearFocus()
+
+                })
+            }
             .padding(24.dp),
         contentAlignment = Alignment.Center
     ) {
