@@ -1,3 +1,4 @@
+
 import java.util.Properties
 
 plugins {
@@ -5,8 +6,15 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+// API KEY DE GOOGLE MAPS
 val localProperties = Properties().apply {
-    load(rootProject.file("local.properties").inputStream())
+    val propertiesFile = rootProject.file("local.properties")
+
+    if (propertiesFile.exists()) {
+        propertiesFile.inputStream().use {
+            load(it)
+        }
+    }
 }
 
 val mapsApiKey =
@@ -45,7 +53,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-
         isCoreLibraryDesugaringEnabled = true
     }
 
@@ -56,77 +63,43 @@ android {
 
 dependencies {
 
+    // DESUGARING
     coreLibraryDesugaring(
         "com.android.tools:desugar_jdk_libs:2.1.5"
     )
 
-    implementation(
-        platform(libs.androidx.compose.bom)
-    )
+    // JETPACK COMPOSE
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.navigation.compose)
 
-    implementation(
-        libs.androidx.activity.compose
-    )
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
 
-    implementation(
-        libs.androidx.compose.material3
-    )
+    // ANDROIDX
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 
-    implementation(
-        libs.androidx.compose.material.icons.extended
-    )
+    // LOTTIE - CAMBIOS DE TUS COMPANEROS
+    implementation(libs.lottie.compose)
 
-    implementation(
-        libs.androidx.navigation.compose
-    )
+    // RETROFIT Y GSON
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation("com.google.code.gson:gson:2.10.1")
 
-    implementation(
-        libs.androidx.compose.ui
-    )
+    // COIL
+    implementation("io.coil-kt:coil-compose:2.7.0")
 
-    implementation(
-        libs.androidx.compose.ui.graphics
-    )
+    // GOOGLE MAPS - TRACKER F04
+    implementation("com.google.maps.android:maps-compose:8.6.0")
 
-    implementation(
-        libs.androidx.compose.ui.tooling.preview
-    )
-
-    implementation(
-        libs.androidx.core.ktx
-    )
-
-    implementation(
-        libs.androidx.lifecycle.runtime.ktx
-    )
-
-    implementation(
-        libs.androidx.lifecycle.viewmodel.compose
-    )
-
-    implementation(
-        "com.squareup.retrofit2:retrofit:2.11.0"
-    )
-
-    implementation(
-        "com.squareup.retrofit2:converter-gson:2.11.0"
-    )
-
-    implementation(
-        "com.google.code.gson:gson:2.10.1"
-    )
-
-    implementation(
-        "io.coil-kt:coil-compose:2.7.0"
-    )
-
-    implementation(
-        "com.google.maps.android:maps-compose:8.6.0"
-    )
-
-    testImplementation(
-        libs.junit
-    )
+    // TESTS
+    testImplementation(libs.junit)
 
     androidTestImplementation(
         platform(libs.androidx.compose.bom)

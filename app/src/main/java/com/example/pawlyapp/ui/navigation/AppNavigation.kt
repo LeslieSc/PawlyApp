@@ -19,13 +19,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.pawlyapp.ui.auth.data.SessionPreferences
+import com.example.pawlyapp.ui.auth.view.LoginScreenView
+import com.example.pawlyapp.ui.auth.viewmodel.LogoutViewModel
 import com.example.pawlyapp.ui.health.homeHealth.view.HomeHealthView
 import com.example.pawlyapp.ui.home.view.PetsHomeView
-import com.example.pawlyapp.ui.login.view.LoginScreenView
 import com.example.pawlyapp.ui.mainmenu.firstapirequest.view.FirstApiRequestView
 import com.example.pawlyapp.ui.mainmenu.homeMainmenu.view.HomeMainMenuView
 import com.example.pawlyapp.ui.onboarding.data.OnboardingPreferences
@@ -91,13 +94,12 @@ fun AppNavigation() {
     val context = LocalContext.current
 
     val startDestination = remember {
-        if (
-            OnboardingPreferences(context)
-                .hasCompletedOnboarding()
-        ) {
-            "login"
-        } else {
+        if (!OnboardingPreferences(context).hasCompletedOnboarding()) {
             "onboarding"
+        } else if (SessionPreferences(context).isLoggedIn()) {
+            "tabs"
+        } else {
+            "login"
         }
     }
 
@@ -127,7 +129,7 @@ fun AppNavigation() {
         composable("login") {
 
             LoginScreenView(
-                onLoginClick = {
+                onLoginSuccess = {
 
                     rootNavController.navigate("tabs") {
 
@@ -141,18 +143,33 @@ fun AppNavigation() {
 
         composable("tabs") {
 
-            TabsScaffold()
+            val logoutViewModel: LogoutViewModel = viewModel()
+
+            TabsScaffold(
+                onLogout = {
+
+                    logoutViewModel.logout {
+
+                        rootNavController.navigate("login") {
+
+                            popUpTo("tabs") {
+                                inclusive = true
+                            }
+                        }
+                    }
+                }
+            )
         }
     }
 }
 
 @Composable
-private fun TabsScaffold() {
+private fun TabsScaffold(onLogout: () -> Unit) {
 
     val navController = rememberNavController()
 
     val navBackStackEntry by
-    navController.currentBackStackEntryAsState()
+        navController.currentBackStackEntryAsState()
 
     val currentRoute =
         navBackStackEntry?.destination?.route
@@ -264,7 +281,9 @@ private fun TabsScaffold() {
                 AppRoute.PersonalInfo.route
             ) {
 
-                HomePersonalinformationView()
+                HomePersonalinformationView(
+                    onLogout = onLogout
+                )
             }
         }
     }
