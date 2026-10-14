@@ -1,4 +1,4 @@
-package com.example.pawlyapp.ui.mainmenu.firstapirequest.model
+package com.example.pawlyapp.ui.breeds.model
 
 data class RazaPerro(
     val id: Int,
