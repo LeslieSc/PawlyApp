@@ -1,41 +1,64 @@
+
 package com.example.pawlyapp.ui.navigation
 
 import androidx.compose.foundation.layout.padding
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Pets
+
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
+
 import androidx.lifecycle.viewmodel.compose.viewModel
+
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+
 import com.example.pawlyapp.ui.auth.data.SessionPreferences
 import com.example.pawlyapp.ui.auth.view.LoginScreenView
 import com.example.pawlyapp.ui.auth.viewmodel.LogoutViewModel
+
 import com.example.pawlyapp.ui.health.homeHealth.view.HomeHealthView
 import com.example.pawlyapp.ui.home.view.PetsHomeView
+
+
 import com.example.pawlyapp.ui.breeds.homeBreeds.view.HomeBreedsView
 import com.example.pawlyapp.ui.breeds.view.BreedsView
 import com.example.pawlyapp.ui.onboarding.data.OnboardingPreferences
 import com.example.pawlyapp.ui.onboarding.view.OnboardingView
+
 import com.example.pawlyapp.ui.personalinformation.homePersonalinformation.view.HomePersonalinformationView
+
 import com.example.pawlyapp.ui.tracker.homeTracker.view.HomeTrackerView
 
+// ========================================
+// RUTA DE API
+// ========================================
+
+private const val FIRST_API_REQUEST_ROUTE =
+    "first_api_request"
+
+// ========================================
+// RUTAS PRINCIPALES
+// ========================================
 private const val BREEDS_ROUTE = "breeds"
 
 sealed class AppRoute(
@@ -43,41 +66,41 @@ sealed class AppRoute(
     val label: String,
     val icon: ImageVector
 ) {
-    object MainMenu :
-        AppRoute(
-            "main_menu",
-            "Explorar",
-            Icons.Filled.Pets
-        )
 
-    object Home :
-        AppRoute(
-            "home",
-            "Inicio",
-            Icons.Filled.Home
-        )
+    object MainMenu : AppRoute(
+        route = "main_menu",
+        label = "Explorar",
+        icon = Icons.Filled.Pets
+    )
 
-    object Health :
-        AppRoute(
-            "health",
-            "Salud",
-            Icons.Filled.Favorite
-        )
+    object Home : AppRoute(
+        route = "home",
+        label = "Inicio",
+        icon = Icons.Filled.Home
+    )
 
-    object Tracker :
-        AppRoute(
-            "tracker",
-            "Tracker",
-            Icons.Filled.LocationOn
-        )
+    object Health : AppRoute(
+        route = "health",
+        label = "Salud",
+        icon = Icons.Filled.Favorite
+    )
 
-    object PersonalInfo :
-        AppRoute(
-            "personal_info",
-            "Perfil",
-            Icons.Filled.Person
-        )
+    object Tracker : AppRoute(
+        route = "tracker",
+        label = "Tracker",
+        icon = Icons.Filled.LocationOn
+    )
+
+    object PersonalInfo : AppRoute(
+        route = "personal_info",
+        label = "Perfil",
+        icon = Icons.Filled.Person
+    )
 }
+
+// ========================================
+// PESTAÑAS INFERIORES
+// ========================================
 
 private val TABS = listOf(
     AppRoute.Home,
@@ -87,18 +110,35 @@ private val TABS = listOf(
     AppRoute.PersonalInfo
 )
 
+// ========================================
+// NAVEGACION PRINCIPAL
+// ========================================
+
 @Composable
 fun AppNavigation() {
 
     val rootNavController = rememberNavController()
+
     val context = LocalContext.current
 
+    // Decidir si mostrar onboarding, login o inicio
     val startDestination = remember {
-        if (!OnboardingPreferences(context).hasCompletedOnboarding()) {
+
+        if (
+            !OnboardingPreferences(context)
+                .hasCompletedOnboarding()
+        ) {
+
             "onboarding"
-        } else if (SessionPreferences(context).isLoggedIn()) {
+
+        } else if (
+            SessionPreferences(context).isLoggedIn()
+        ) {
+
             "tabs"
+
         } else {
+
             "login"
         }
     }
@@ -107,6 +147,10 @@ fun AppNavigation() {
         navController = rootNavController,
         startDestination = startDestination
     ) {
+
+        // ====================================
+        // ONBOARDING
+        // ====================================
 
         composable("onboarding") {
 
@@ -126,6 +170,10 @@ fun AppNavigation() {
             )
         }
 
+        // ====================================
+        // LOGIN
+        // ====================================
+
         composable("login") {
 
             LoginScreenView(
@@ -141,9 +189,14 @@ fun AppNavigation() {
             )
         }
 
+        // ====================================
+        // PANTALLAS CON BARRA INFERIOR
+        // ====================================
+
         composable("tabs") {
 
-            val logoutViewModel: LogoutViewModel = viewModel()
+            val logoutViewModel: LogoutViewModel =
+                viewModel()
 
             TabsScaffold(
                 onLogout = {
@@ -163,18 +216,29 @@ fun AppNavigation() {
     }
 }
 
+// ========================================
+// BARRA INFERIOR Y NAVEGACION DE TABS
+// ========================================
+
 @Composable
-private fun TabsScaffold(onLogout: () -> Unit) {
+private fun TabsScaffold(
+    onLogout: () -> Unit
+) {
 
     val navController = rememberNavController()
 
     val navBackStackEntry by
-        navController.currentBackStackEntryAsState()
+    navController.currentBackStackEntryAsState()
 
     val currentRoute =
         navBackStackEntry?.destination?.route
 
     Scaffold(
+
+        // ====================================
+        // BARRA DE NAVEGACION
+        // ====================================
+
         bottomBar = {
 
             NavigationBar {
@@ -182,14 +246,13 @@ private fun TabsScaffold(onLogout: () -> Unit) {
                 TABS.forEach { tab ->
 
                     NavigationBarItem(
+
                         selected =
                             currentRoute == tab.route,
 
                         onClick = {
 
-                            navController.navigate(
-                                tab.route
-                            ) {
+                            navController.navigate(tab.route) {
 
                                 popUpTo(
                                     navController.graph.startDestinationId
@@ -198,6 +261,7 @@ private fun TabsScaffold(onLogout: () -> Unit) {
                                 }
 
                                 launchSingleTop = true
+
                                 restoreState = true
                             }
                         },
@@ -224,11 +288,19 @@ private fun TabsScaffold(onLogout: () -> Unit) {
 
     ) { innerPadding ->
 
+        // ====================================
+        // RUTAS DE LAS PANTALLAS
+        // ====================================
+
         NavHost(
             navController = navController,
             startDestination = AppRoute.Home.route,
             modifier = Modifier.padding(innerPadding)
         ) {
+
+            // ====================================
+            // MENU EXPLORAR
+            // ====================================
 
             composable(
                 AppRoute.MainMenu.route
@@ -237,12 +309,41 @@ private fun TabsScaffold(onLogout: () -> Unit) {
                 HomeBreedsView()
             }
 
+            // ====================================
+            // HOME - F11 EMPTY STATE
+            // ====================================
+
             composable(
                 AppRoute.Home.route
             ) {
 
-                PetsHomeView()
+                PetsHomeView(
+
+                    // Al presionar "Iniciar paseo"
+                    // ir directamente al Tracker F04.
+                    onStartWalk = {
+
+                        navController.navigate(
+                            AppRoute.Tracker.route
+                        ) {
+
+                            popUpTo(
+                                navController.graph.startDestinationId
+                            ) {
+                                saveState = true
+                            }
+
+                            launchSingleTop = true
+
+                            restoreState = true
+                        }
+                    }
+                )
             }
+
+            // ====================================
+            // PRIMERA API
+            // ====================================
 
             composable(
                 BREEDS_ROUTE
@@ -256,6 +357,10 @@ private fun TabsScaffold(onLogout: () -> Unit) {
                 )
             }
 
+            // ====================================
+            // SALUD
+            // ====================================
+
             composable(
                 AppRoute.Health.route
             ) {
@@ -263,12 +368,20 @@ private fun TabsScaffold(onLogout: () -> Unit) {
                 HomeHealthView()
             }
 
+            // ====================================
+            // TRACKER - F04
+            // ====================================
+
             composable(
                 AppRoute.Tracker.route
             ) {
 
                 HomeTrackerView()
             }
+
+            // ====================================
+            // PERFIL
+            // ====================================
 
             composable(
                 AppRoute.PersonalInfo.route

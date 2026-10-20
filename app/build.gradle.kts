@@ -67,7 +67,7 @@ dependencies {
     coreLibraryDesugaring(
         "com.android.tools:desugar_jdk_libs:2.1.5"
     )
-
+    implementation("org.osmdroid:osmdroid-android:6.1.20")
     // JETPACK COMPOSE
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
@@ -106,32 +106,7 @@ dependencies {
     // GOOGLE MAPS - TRACKER F04
     implementation("com.google.maps.android:maps-compose:8.6.0")
 
-    // TESTS
-    testImplementation(libs.junit)
 
-    androidTestImplementation(
-        platform(libs.androidx.compose.bom)
-    )
-
-    androidTestImplementation(
-        libs.androidx.compose.ui.test.junit4
-    )
-
-    androidTestImplementation(
-        libs.androidx.espresso.core
-    )
-
-    androidTestImplementation(
-        libs.androidx.junit
-    )
-
-    debugImplementation(
-        libs.androidx.compose.ui.test.manifest
-    )
-
-    debugImplementation(
-        libs.androidx.compose.ui.tooling
-    )
 // Biometricos
     implementation("androidx.biometric:biometric:1.1.0")
     implementation("androidx.security:security-crypto:1.1.0")

@@ -1,142 +1,222 @@
+
 package com.example.pawlyapp.ui.tracker.homeTracker.viewmodel
 
-import android.os.SystemClock
-import androidx.lifecycle.ViewModel
+import android.Manifest
+import android.app.Application
+import android.content.Context
+import android.content.pm.PackageManager
+import android.hardware.Sensor
+import android.hardware.SensorManager
+
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+
 import com.example.pawlyapp.ui.tracker.homeTracker.model.HomeTrackerModel
 import com.example.pawlyapp.ui.tracker.homeTracker.model.TrackerMapType
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import com.example.pawlyapp.ui.tracker.service.WalkSessionStore
+import com.example.pawlyapp.ui.tracker.service.WalkTrackingService
+
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class HomeTrackerViewModel : ViewModel() {
+class HomeTrackerViewModel(
+    application: Application
+) : AndroidViewModel(application) {
 
-    private val _uiState = MutableStateFlow(HomeTrackerModel())
+    // ====================================
+    // ESTADO DE LA PANTALLA
+    // ====================================
+
+    private val _uiState = MutableStateFlow(
+        HomeTrackerModel()
+    )
 
     val uiState: StateFlow<HomeTrackerModel> =
         _uiState.asStateFlow()
 
-    private var timerJob: Job? = null
+    // ====================================
+    // COMPROBAR SENSOR DE PASOS
+    // ====================================
 
-    private var accumulatedTimeMs = 0L
-    private var startedAtMs = 0L
+    private val sensorManager =
+        application.getSystemService(
+            Context.SENSOR_SERVICE
+        ) as SensorManager
 
-    // INICIAR PASEO
-    fun startTracking() {
-        if (_uiState.value.isTracking) return
+    val hasStepSensor: Boolean
+        get() = sensorManager.getDefaultSensor(
+            Sensor.TYPE_STEP_COUNTER
+        ) != null
 
-        timerJob?.cancel()
-        accumulatedTimeMs = 0L
-        startedAtMs = SystemClock.elapsedRealtime()
+    // ====================================
+    // SINCRONIZAR DATOS CON EL SERVICIO
+    // ====================================
 
-        _uiState.update {
-            it.copy(
-                isTracking = true,
-                isPaused = false,
-                isFinished = false,
-                elapsedSeconds = 0L,
-                steps = 0,
-                distanceKm = 0.0
-            )
-        }
+    init {
 
-        startTimer()
-    }
+        viewModelScope.launch {
 
-    // PAUSAR PASEO
-    fun pauseTracking() {
-        val state = _uiState.value
-        if (!state.isTracking || state.isPaused) return
+            WalkSessionStore.state.collect { session ->
 
-        accumulatedTimeMs +=
-            SystemClock.elapsedRealtime() - startedAtMs
+                _uiState.update { current ->
 
-        timerJob?.cancel()
+                    current.copy(
+                        isTracking = session.isTracking,
+                        isPaused = session.isPaused,
+                        isFinished = session.isFinished,
 
-        _uiState.update {
-            it.copy(
-                isPaused = true,
-                elapsedSeconds = accumulatedTimeMs / 1000
-            )
-        }
-    }
+                        elapsedSeconds = session.elapsedSeconds,
+                        steps = session.steps,
+                        distanceKm = session.distanceKm,
 
-    // REANUDAR PASEO
-    fun resumeTracking() {
-        val state = _uiState.value
-        if (!state.isTracking || !state.isPaused) return
+                        route = session.route,
 
-        startedAtMs = SystemClock.elapsedRealtime()
-
-        _uiState.update {
-            it.copy(isPaused = false)
-        }
-
-        startTimer()
-    }
-
-    // TERMINAR PASEO
-    fun finishTracking() {
-        val state = _uiState.value
-        if (!state.isTracking) return
-
-        if (!state.isPaused) {
-            accumulatedTimeMs +=
-                SystemClock.elapsedRealtime() - startedAtMs
-        }
-
-        timerJob?.cancel()
-
-        _uiState.update {
-            it.copy(
-                isTracking = false,
-                isPaused = false,
-                isFinished = true,
-                elapsedSeconds = accumulatedTimeMs / 1000
-            )
-        }
-    }
-
-    // CRONOMETRO
-    private fun startTimer() {
-        timerJob?.cancel()
-
-        timerJob = viewModelScope.launch {
-            while (isActive) {
-                val currentTime =
-                    SystemClock.elapsedRealtime() - startedAtMs
-
-                _uiState.update {
-                    it.copy(
-                        elapsedSeconds =
-                            (accumulatedTimeMs + currentTime) / 1000
+                        latitude = session.latitude,
+                        longitude = session.longitude
                     )
                 }
-
-                delay(250)
             }
         }
     }
 
+    // ====================================
+    // INICIAR PASEO
+    // ====================================
+
+    fun startTracking() {
+
+        if (WalkSessionStore.state.value.isTracking) {
+            return
+        }
+
+        WalkTrackingService.send(
+            getApplication<Application>(),
+            WalkTrackingService.ACTION_START
+        )
+    }
+
+    // ====================================
+    // PAUSAR PASEO
+    // ====================================
+
+    fun pauseTracking() {
+
+        if (
+            !WalkSessionStore.state.value.isTracking ||
+            WalkSessionStore.state.value.isPaused
+        ) {
+            return
+        }
+
+        WalkTrackingService.send(
+            getApplication<Application>(),
+            WalkTrackingService.ACTION_PAUSE
+        )
+    }
+
+    // ====================================
+    // REANUDAR PASEO
+    // ====================================
+
+    fun resumeTracking() {
+
+        if (
+            !WalkSessionStore.state.value.isTracking ||
+            !WalkSessionStore.state.value.isPaused
+        ) {
+            return
+        }
+
+        WalkTrackingService.send(
+            getApplication<Application>(),
+            WalkTrackingService.ACTION_RESUME
+        )
+    }
+
+    // ====================================
+    // TERMINAR PASEO
+    // ====================================
+
+    fun finishTracking() {
+
+        if (!WalkSessionStore.state.value.isTracking) {
+            return
+        }
+
+        WalkTrackingService.send(
+            getApplication<Application>(),
+            WalkTrackingService.ACTION_FINISH
+        )
+    }
+
+    // ====================================
+    // ACTIVAR GPS TRAS CONCEDER PERMISO
+    // ====================================
+
+    fun startLocationTracking(): Boolean {
+
+        val context = getApplication<Application>()
+
+        val fineGranted =
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+
+        val coarseGranted =
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+
+        if (!fineGranted && !coarseGranted) {
+            return false
+        }
+
+        if (!WalkSessionStore.state.value.isTracking) {
+            return false
+        }
+
+        if (WalkSessionStore.state.value.isPaused) {
+            return false
+        }
+
+        // Avisar al servicio que ya puede usar el GPS
+        WalkTrackingService.send(
+            context,
+            WalkTrackingService.ACTION_REFRESH
+        )
+
+        return true
+    }
+
+    // ====================================
     // OPCIONES DEL MAPA
+    // ====================================
+
     fun openMapOptions() {
+
         _uiState.update {
             it.copy(showMapOptions = true)
         }
     }
 
     fun closeMapOptions() {
+
         _uiState.update {
             it.copy(showMapOptions = false)
         }
     }
 
-    fun selectMapType(mapType: TrackerMapType) {
+    fun selectMapType(
+        mapType: TrackerMapType
+    ) {
+
         _uiState.update {
             it.copy(
                 selectedMapType = mapType,
@@ -146,17 +226,31 @@ class HomeTrackerViewModel : ViewModel() {
     }
 
     fun toggle3DMode() {
+
         _uiState.update {
-            it.copy(is3DMode = !it.is3DMode)
+            it.copy(
+                is3DMode = !it.is3DMode
+            )
         }
     }
 
-    // UBICACION
+    // ====================================
+    // ACTUALIZACION MANUAL DE UBICACION
+    // ====================================
+
     fun updateLocation(
         latitude: Double,
         longitude: Double
     ) {
+
+        // No sustituir coordenadas GPS
+        // registradas por un paseo activo.
+        if (_uiState.value.isTracking) {
+            return
+        }
+
         _uiState.update {
+
             it.copy(
                 latitude = latitude,
                 longitude = longitude
@@ -164,23 +258,29 @@ class HomeTrackerViewModel : ViewModel() {
         }
     }
 
-    // DATOS DEL PASEO
+    // ====================================
+    // METODO DE COMPATIBILIDAD
+    // ====================================
+
     fun updateTrackingData(
         elapsedSeconds: Long,
         distanceKm: Double,
         steps: Int
     ) {
+
+        // Durante el paseo, solo el servicio
+        // debe modificar estos datos.
+        if (_uiState.value.isTracking) {
+            return
+        }
+
         _uiState.update {
+
             it.copy(
                 elapsedSeconds = elapsedSeconds,
                 distanceKm = distanceKm,
                 steps = steps
             )
         }
-    }
-
-    override fun onCleared() {
-        timerJob?.cancel()
-        super.onCleared()
     }
 }

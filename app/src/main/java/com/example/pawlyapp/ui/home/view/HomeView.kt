@@ -51,7 +51,8 @@ import com.example.pawlyapp.ui.theme.PawlyTextSoft
  */
 @Composable
 fun PetsHomeView(
-    viewModel: PetsHomeViewModel = viewModel()
+    viewModel: PetsHomeViewModel = viewModel(),
+    onStartWalk: () -> Unit = {}
 ) {
 
     val uiState by viewModel.uiState.collectAsState()
@@ -151,7 +152,14 @@ fun PetsHomeView(
                                 }
                             }
 
-
+                // F11 - Mostrar estado vacío cuando no hay paseos
+                if (uiState.walks.isEmpty()) {
+                    item {
+                        WalksEmptyState(
+                            onStartWalk = onStartWalk
+                        )
+                    }
+                }
                         // Paseos recientes
                         if (uiState.walks.size > 1) {
 
