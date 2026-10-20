@@ -42,6 +42,8 @@ import com.example.pawlyapp.ui.home.view.PetsHomeView
 import com.example.pawlyapp.ui.mainmenu.firstapirequest.view.FirstApiRequestView
 import com.example.pawlyapp.ui.mainmenu.homeMainmenu.view.HomeMainMenuView
 
+import com.example.pawlyapp.ui.breeds.homeBreeds.view.HomeBreedsView
+import com.example.pawlyapp.ui.breeds.view.BreedsView
 import com.example.pawlyapp.ui.onboarding.data.OnboardingPreferences
 import com.example.pawlyapp.ui.onboarding.view.OnboardingView
 
@@ -59,6 +61,7 @@ private const val FIRST_API_REQUEST_ROUTE =
 // ========================================
 // RUTAS PRINCIPALES
 // ========================================
+private const val BREEDS_ROUTE = "breeds"
 
 sealed class AppRoute(
     val route: String,
@@ -305,14 +308,7 @@ private fun TabsScaffold(
                 AppRoute.MainMenu.route
             ) {
 
-                HomeMainMenuView(
-                    onNavigateToFirstApiRequest = {
-
-                        navController.navigate(
-                            FIRST_API_REQUEST_ROUTE
-                        )
-                    }
-                )
+                HomeBreedsView()
             }
 
             // ====================================
@@ -352,10 +348,10 @@ private fun TabsScaffold(
             // ====================================
 
             composable(
-                FIRST_API_REQUEST_ROUTE
+                BREEDS_ROUTE
             ) {
 
-                FirstApiRequestView(
+                BreedsView(
                     onBack = {
 
                         navController.popBackStack()

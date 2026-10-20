@@ -2,6 +2,7 @@
 package com.example.pawlyapp.ui.home.viewmodel
 
 import android.app.Application
+import android.util.Log
 
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -33,6 +34,8 @@ class PetsHomeViewModel(
     // ====================================
     // API DE PAWLYAPP
     // ====================================
+
+    private val TAG = "PetsHomeViewModel"
 
     private val petsService =
         PetsRetrofitClient.petsService
@@ -199,22 +202,84 @@ class PetsHomeViewModel(
 
             } catch (e: HttpException) {
 
+                Log.e(TAG, "Error HTTP en carga inicial: ${e.code()}", e)
                 handleLoadError(
                     "No se pudo cargar la información (${e.code()})"
                 )
 
             } catch (e: SocketTimeoutException) {
-
+                Log.e(TAG, "Timeout en carga inicial", e)
                 handleLoadError(
                     "El servidor está iniciando. Intenta nuevamente."
                 )
 
             } catch (e: Exception) {
-
+                Log.e(TAG, "Excepción en carga inicial", e)
                 handleLoadError(
                     "Revisa tu conexión e intenta de nuevo."
                 )
             }
         }
     }
+
+
+    /**
+     * Actualiza los datos del Home mediante la acción de Pull-to-Refresh.
+     * Se diferencia de [loadPetsHome] en que utiliza [isRefreshing] en lugar de [isLoading],
+     * permitiendo que los datos existentes (paseos y consejos) permanezcan visibles en pantalla
+     * mientras se realiza la petición en segundo plano. Si ocurre un fallo, se preservan los datos
+     * anteriores y se notifica el error mediante un Snackbar.
+     */
+    fun refreshPetsHome() {
+        // Previene peticiones simultáneas si ya se está actualizando o cargando inicialmente
+        if (_uiState.value.isRefreshing || _uiState.value.isLoading) return
+
+        viewModelScope.launch {
+            // Activamos isRefreshing sin alterar el contenido actual (walks y tips se conservan)
+            _uiState.update {
+                it.copy(
+                    isRefreshing = true,
+                    refreshError = null
+                )
+            }
+
+            try {
+                // Reutilizamos el mismo servicio de red (getPetsHome) para obtener los datos actualizados
+                val response = petsService.getPetsHome()
+
+                apiWalks = response.walks
+                val allWalks = getAllWalks()
+                // Si la petición es exitosa, actualizamos la información y ocultamos el indicador de refresco
+                _uiState.update {
+                    it.copy(
+                        isRefreshing = false,
+                        walks = allWalks,
+                        tips = response.tips
+                    )
+                }
+            } catch (e: Exception) {
+                // Registramos los detalles técnicos del error en Logcat para diagnóstico durante el desarrollo
+                Log.e(TAG, "Error al actualizar los datos en Pull-to-Refresh", e)
+
+                // Si ocurre un error, ocultamos el indicador de refresco y mostramos el mensaje en el Snackbar,
+                // preservando intactos los datos previamente cargados ([walks] y [tips] no se modifican).
+                _uiState.update {
+                    it.copy(
+                        isRefreshing = false,
+                        refreshError = "No se pudo actualizar la información. Inténtalo de nuevo."
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * Limpia el mensaje de error de actualización para evitar que el Snackbar se dispare repetidamente.
+     */
+    fun clearRefreshError() {
+        _uiState.update {
+            it.copy(refreshError = null)
+        }
+    }
+
 }
