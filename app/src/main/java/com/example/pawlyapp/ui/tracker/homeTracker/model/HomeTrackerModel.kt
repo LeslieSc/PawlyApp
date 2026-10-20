@@ -1,3 +1,4 @@
+
 package com.example.pawlyapp.ui.tracker.homeTracker.model
 
 enum class TrackerMapType {
@@ -7,6 +8,13 @@ enum class TrackerMapType {
     TERRAIN
 }
 
+// Cada punto registrado durante el paseo
+data class WalkPoint(
+    val latitude: Double,
+    val longitude: Double,
+    val startsNewSegment: Boolean = false
+)
+
 data class HomeTrackerModel(
     val isTracking: Boolean = false,
     val isPaused: Boolean = false,
@@ -15,6 +23,9 @@ data class HomeTrackerModel(
     val elapsedSeconds: Long = 0L,
     val distanceKm: Double = 0.0,
     val steps: Int = 0,
+
+    // Coordenadas del recorrido
+    val route: List<WalkPoint> = emptyList(),
 
     val selectedMapType: TrackerMapType = TrackerMapType.STANDARD,
     val showMapOptions: Boolean = false,

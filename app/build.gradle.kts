@@ -67,7 +67,7 @@ dependencies {
     coreLibraryDesugaring(
         "com.android.tools:desugar_jdk_libs:2.1.5"
     )
-
+    implementation("org.osmdroid:osmdroid-android:6.1.20")
     // JETPACK COMPOSE
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)

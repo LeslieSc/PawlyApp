@@ -45,7 +45,7 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyCBcv_aTmKSWphxUpYdwO_J8awZ41qJPQs" />
+            android:value="${MAPS_API_KEY}" />
 
         <activity
             android:name=".MainActivity"
@@ -60,7 +60,12 @@
             </intent-filter>
 
         </activity>
-
+        <!-- Servicio para registrar paseos en segundo plano -->
+        <service
+            android:name=".ui.tracker.service.WalkTrackingService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="location|health" />
     </application>
 
 </manifest>
