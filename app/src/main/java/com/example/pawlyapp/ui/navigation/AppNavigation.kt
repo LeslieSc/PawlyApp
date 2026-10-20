@@ -29,14 +29,14 @@ import com.example.pawlyapp.ui.auth.view.LoginScreenView
 import com.example.pawlyapp.ui.auth.viewmodel.LogoutViewModel
 import com.example.pawlyapp.ui.health.homeHealth.view.HomeHealthView
 import com.example.pawlyapp.ui.home.view.PetsHomeView
-import com.example.pawlyapp.ui.mainmenu.firstapirequest.view.FirstApiRequestView
-import com.example.pawlyapp.ui.mainmenu.homeMainmenu.view.HomeMainMenuView
+import com.example.pawlyapp.ui.breeds.homeBreeds.view.HomeBreedsView
+import com.example.pawlyapp.ui.breeds.view.BreedsView
 import com.example.pawlyapp.ui.onboarding.data.OnboardingPreferences
 import com.example.pawlyapp.ui.onboarding.view.OnboardingView
 import com.example.pawlyapp.ui.personalinformation.homePersonalinformation.view.HomePersonalinformationView
 import com.example.pawlyapp.ui.tracker.homeTracker.view.HomeTrackerView
 
-private const val FIRST_API_REQUEST_ROUTE = "first_api_request"
+private const val BREEDS_ROUTE = "breeds"
 
 sealed class AppRoute(
     val route: String,
@@ -234,14 +234,7 @@ private fun TabsScaffold(onLogout: () -> Unit) {
                 AppRoute.MainMenu.route
             ) {
 
-                HomeMainMenuView(
-                    onNavigateToFirstApiRequest = {
-
-                        navController.navigate(
-                            FIRST_API_REQUEST_ROUTE
-                        )
-                    }
-                )
+                HomeBreedsView()
             }
 
             composable(
@@ -252,10 +245,10 @@ private fun TabsScaffold(onLogout: () -> Unit) {
             }
 
             composable(
-                FIRST_API_REQUEST_ROUTE
+                BREEDS_ROUTE
             ) {
 
-                FirstApiRequestView(
+                BreedsView(
                     onBack = {
 
                         navController.popBackStack()
