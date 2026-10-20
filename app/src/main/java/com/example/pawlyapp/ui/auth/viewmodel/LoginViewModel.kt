@@ -8,6 +8,7 @@ import com.example.pawlyapp.ui.auth.model.LoginRequest
 import com.example.pawlyapp.ui.auth.model.LoginResponse
 import com.example.pawlyapp.ui.auth.model.LoginUiState
 import com.example.pawlyapp.ui.auth.network.AuthRetrofitClient
+import androidx.biometric.BiometricManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -61,14 +62,28 @@ class LoginViewModel(
                 session.saveSession(
                     response.access,
                     response.refresh,
-                    response.user
+                    response.user,
+                    password = password
                 )
 
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        isLoggedIn = true
-                    )
+                val canUseBiometrics = BiometricManager.from(getApplication()).canAuthenticate(
+                    BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.BIOMETRIC_WEAK
+                ) == BiometricManager.BIOMETRIC_SUCCESS
+
+                if (canUseBiometrics && !session.isBiometricEnabled() && !session.hasAskedBiometric()) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            showBiometricPromptDialog = true
+                        )
+                    }
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isLoggedIn = true
+                        )
+                    }
                 }
 
             } catch (e: HttpException) {
@@ -101,10 +116,49 @@ class LoginViewModel(
         }
     }
 
+    fun enableBiometricAndProceed() {
+        session.setBiometricEnabled(true)
+        _uiState.update {
+            it.copy(
+                showBiometricPromptDialog = false,
+                isLoggedIn = true
+            )
+        }
+    }
+
+    fun disableBiometricAndProceed() {
+        session.setBiometricEnabled(false)
+        _uiState.update {
+            it.copy(
+                showBiometricPromptDialog = false,
+                isLoggedIn = true
+            )
+        }
+    }
+
     fun clearError() {
         _uiState.update {
             it.copy(error = null)
         }
+    }
+
+    fun loginWithBiometric() {
+        val username = session.username()
+        val password = session.savedPassword()
+
+        if (session.isBiometricEnabled() && !username.isNullOrBlank() && !password.isNullOrBlank()) {
+            login(username, password)
+        } else {
+            _uiState.update {
+                it.copy(
+                    error = "Debes activar el acceso biométrico e iniciar sesión con contraseña al menos una vez"
+                )
+            }
+        }
+    }
+
+    fun setCustomError(message: String) {
+        _uiState.update { it.copy(error = message) }
     }
 
     private suspend fun loginWithRetry(
