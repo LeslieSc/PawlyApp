@@ -39,8 +39,6 @@ import com.example.pawlyapp.ui.auth.viewmodel.LogoutViewModel
 import com.example.pawlyapp.ui.health.homeHealth.view.HomeHealthView
 import com.example.pawlyapp.ui.home.view.PetsHomeView
 
-import com.example.pawlyapp.ui.mainmenu.firstapirequest.view.FirstApiRequestView
-import com.example.pawlyapp.ui.mainmenu.homeMainmenu.view.HomeMainMenuView
 
 import com.example.pawlyapp.ui.breeds.homeBreeds.view.HomeBreedsView
 import com.example.pawlyapp.ui.breeds.view.BreedsView
